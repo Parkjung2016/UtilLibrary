@@ -1,0 +1,51 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <Nullable>enable</Nullable>
+        <RootNamespace>ClassLibrary3</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Reference Include="UniTask">
+        <HintPath>..\Library\UniTask.dll</HintPath>
+      </Reference>
+      <Reference Include="UniTask.Addressables">
+        <HintPath>..\Library\UniTask.Addressables.dll</HintPath>
+      </Reference>
+      <Reference Include="UniTask.DOTween">
+        <HintPath>..\Library\UniTask.DOTween.dll</HintPath>
+      </Reference>
+      <Reference Include="UniTask.Linq">
+        <HintPath>..\Library\UniTask.Linq.dll</HintPath>
+      </Reference>
+      <Reference Include="UniTask.TextMeshPro">
+        <HintPath>..\Library\UniTask.TextMeshPro.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.Addressables">
+        <HintPath>..\Library\Unity.Addressables.dll</HintPath>
+      </Reference>
+      <Reference Include="Unity.ResourceManager">
+        <HintPath>..\Library\Unity.ResourceManager.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine">
+        <HintPath>..\Library\UnityEngine.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UI">
+        <HintPath>..\Library\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="ZLinq">
+        <HintPath>..\Library\ZLinq.dll</HintPath>
+      </Reference>
+      <Reference Include="ZLinq.DropInGenerator">
+        <HintPath>..\Library\ZLinq.DropInGenerator.dll</HintPath>
+      </Reference>
+      <Reference Include="ZLinq.FileSystem">
+        <HintPath>..\Library\ZLinq.FileSystem.dll</HintPath>
+      </Reference>
+      <Reference Include="ZLinq.Json">
+        <HintPath>..\Library\ZLinq.Json.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>
