@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml;
 using ZLinq;
 
 namespace PJH.Utility.Extensions
@@ -15,7 +16,7 @@ namespace PJH.Utility.Extensions
         /// <param name="list">검사할 리스트입니다.</param>
         public static bool IsNullOrEmpty<T>(this IList<T> list)
         {
-            return list == null || !list.AsValueEnumerable().Any();
+            return list == null || list.Count <= 0;
         }
 
         /// <summary>
@@ -25,10 +26,7 @@ namespace PJH.Utility.Extensions
         /// <returns>원본 리스트를 복사한 새 리스트를 반환합니다.</returns>
         public static List<T> Clone<T>(this IList<T> list)
         {
-            List<T> newList = new List<T>();
-            list.ForEach(item => { newList.Add(item); });
-
-            return newList;
+            return list.AsValueEnumerable().ToList();
         }
 
         /// <summary>

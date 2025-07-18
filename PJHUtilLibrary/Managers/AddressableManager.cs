@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using PJH.Utility.Extensions;
 using UnityEngine;
@@ -13,6 +12,8 @@ namespace PJH.Utility
     public static class AddressableManager
     {
         public static bool showDebugLog = true;
+        public static bool isLoaded;
+        public static Action OnLoaded;
         private static Dictionary<string, Object> _resources = new Dictionary<string, Object>();
 
         private static Dictionary<string, AsyncOperationHandle> _handles =
@@ -46,7 +47,7 @@ namespace PJH.Utility
             if (!prefab)
             {
                 if (showDebugLog)
-                Debug.LogError($"Failed to load prefab : {key}");
+                    Debug.LogError($"Failed to load prefab : {key}");
                 return null;
             }
 
@@ -63,7 +64,7 @@ namespace PJH.Utility
             if (!prefab)
             {
                 if (showDebugLog)
-                Debug.LogError($"Failed to load prefab : {key}");
+                    Debug.LogError($"Failed to load prefab : {key}");
                 return null;
             }
 
@@ -124,6 +125,9 @@ namespace PJH.Utility
                     callBack?.Invoke(result.PrimaryKey, loadCount, totalCount);
                 }
             }
+
+            isLoaded = true;
+            OnLoaded?.Invoke();
         }
 
         public static async UniTask<bool> DownloadDependenciesAsync(object label)
