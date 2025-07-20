@@ -56,5 +56,26 @@ namespace PJH.Utility
 
             return default;
         }
+
+        /// <summary>
+        /// 주어진 스크린 좌표를 기준으로, Vector3.up 평면과의 교차점을 월드 좌표로 반환합니다.
+        /// </summary>
+        /// <param name="position">스크린 좌표 (예: Input.mousePosition)</param>
+        /// <returns>평면과의 교차 지점의 월드 좌표. 교차하지 않으면 Vector3.zero 반환.</returns>
+        public static Vector3 GetWorldPointOnPlane(Vector3 position)
+        {
+            Ray cameraRay = Camera.main.ScreenPointToRay(position);
+
+            Plane GroupPlane = new Plane(Vector3.up, Vector3.zero);
+
+            if (GroupPlane.Raycast(cameraRay, out float rayLength))
+
+            {
+                Vector3 pointTolook = cameraRay.GetPoint(rayLength);
+                return pointTolook;
+            }
+
+            return default;
+        }
     }
-}   
+}

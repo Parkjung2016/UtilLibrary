@@ -7,6 +7,14 @@ namespace PJH.Utility
 {
     public static class Debug
     {
+        private static string BuildPrefix(int? prefixNumber, string tag, bool showTimestamp)
+        {
+            string ts = showTimestamp ? $"[{System.DateTime.Now:HH:mm:ss}] " : "";
+            string t = string.IsNullOrEmpty(tag) ? "" : $"[{tag}] ";
+            string n = prefixNumber.HasValue ? $"{prefixNumber.Value}. " : "";
+            return ts + t + n;
+        }
+
         #region Properties
 
         public static ILogger logger => UnityEngine.Debug.unityLogger;
@@ -178,12 +186,22 @@ namespace PJH.Utility
         #region Log
 
         [Conditional("UNITY_EDITOR")]
-        public static void Log(object message)
-            => UnityEngine.Debug.Log(message);
+        public static void Log(object message, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"{prefix}{message}";
+            UnityEngine.Debug.Log(output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void Log(object message, Object context)
-            => UnityEngine.Debug.Log(message, context);
+        public static void Log(object message, Object context, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"{prefix}{message}";
+            UnityEngine.Debug.Log(output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
         public static void LogFormat(string format, params object[] args)
@@ -197,6 +215,156 @@ namespace PJH.Utility
         public static void LogFormat(LogType logType, LogOption logOptions, Object context, string format,
             params object[] args)
             => UnityEngine.Debug.LogFormat(logType, logOptions, context, format, args);
+
+        #endregion
+
+        #region LogColor
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColor(object message, Color color, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.Log(output);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColor(object message, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.Log(output, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorPart(string message, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            foreach (var (part, color) in colorInfos)
+            {
+                string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                fullMessage = fullMessage.Replace(part, coloredPart);
+            }
+
+            UnityEngine.Debug.Log(fullMessage);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorPart(string message, Object context, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            foreach (var (part, color) in colorInfos)
+            {
+                string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                fullMessage = fullMessage.Replace(part, coloredPart);
+            }
+
+            UnityEngine.Debug.Log(fullMessage, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorFormat(string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogFormat(output, args);
+        }
+
+        public static void LogColorFormat(Object context, string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogFormat(context, output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorFormat(LogType logType, LogOption logOptions, Object context, string format,
+            Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogFormat(logType, logOptions, context, output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorFormatPart(string format, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false,
+            (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string message = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    message = message.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogFormat(message, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorFormatPart(Object context, string format, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false,
+            (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string message = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    message = message.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogFormat(context, message, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorFormatPart(LogType logType, LogOption logOptions, Object context, string format,
+            int? prefixNumber = null, string tag = null, bool showTimestamp = false,
+            (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string message = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    message = message.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogFormat(logType, logOptions, context, message, args);
+        }
 
         #endregion
 
@@ -220,6 +388,126 @@ namespace PJH.Utility
 
         #endregion
 
+        #region LogColorAssertion
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorAssertion(object message, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogAssertion(output, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorAssertion(object message, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogAssertion(output);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorAssertionParts(string message, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            foreach (var (part, color) in colorInfos)
+            {
+                string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                fullMessage = fullMessage.Replace(part, coloredPart);
+            }
+
+            UnityEngine.Debug.LogAssertion(fullMessage);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorAssertionParts(Object context, string message, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            foreach (var (part, color) in colorInfos)
+            {
+                string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                fullMessage = fullMessage.Replace(part, coloredPart);
+            }
+
+            UnityEngine.Debug.LogAssertion(fullMessage, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogAssertionFormatColor(Object context, string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogAssertionFormat(context, output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogAssertionFormatColor(string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogAssertionFormat(output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogAssertionFormatColorParts(Object context, string format, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false,
+            (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + string.Format(format, args);
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogAssertion(fullMessage, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogAssertionFormatColorParts(string format, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false,
+            (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + string.Format(format, args);
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogAssertion(fullMessage);
+        }
+
+        #endregion
+
         #region LogWarning
 
         [Conditional("UNITY_EDITOR")]
@@ -240,6 +528,129 @@ namespace PJH.Utility
 
         #endregion
 
+        #region LogColorWarning
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarning(string message, Color color, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogWarning(output);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarning(string message, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogWarning(output, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningPart(string message, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    prefix = prefix.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogWarning(prefix);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningPart(string message, Object context, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    prefix = prefix.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogWarning(prefix, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningFormat(string format, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogWarningFormat(context, output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningFormat(string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogWarningFormat(output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningFormatPart(string format, Object context, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    output = output.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogWarningFormat(context, output);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorWarningFormatPart(string format, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    output = output.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogWarningFormat(output);
+        }
+
+        #endregion
+
         #region LogError
 
         [Conditional("UNITY_EDITOR")]
@@ -257,6 +668,131 @@ namespace PJH.Utility
         [Conditional("UNITY_EDITOR")]
         public static void LogErrorFormat(string format, params object[] args)
             => UnityEngine.Debug.LogErrorFormat(format, args);
+
+        #endregion
+
+        #region LogColorError
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorError(string message, Color color, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogError(output);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorError(string message, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            UnityEngine.Debug.LogError(output, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorFormat(string format, Object context, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogErrorFormat(context, output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorFormat(string format, Color color, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            UnityEngine.Debug.LogErrorFormat(output, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorPart(string message, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogError(fullMessage);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorPart(string message, Object context, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false, params (string part, Color color)[] colorInfos)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + message;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogError(fullMessage, context);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorFormatPart(string format, Object context, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogErrorFormat(context, fullMessage, args);
+        }
+
+        [Conditional("UNITY_EDITOR")]
+        public static void LogColorErrorFormatPart(string format, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, (string part, Color color)[] colorInfos = null, params object[] args)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            string fullMessage = prefix + format;
+
+            if (colorInfos != null)
+            {
+                foreach (var (part, color) in colorInfos)
+                {
+                    string colorHex = ColorUtility.ToHtmlStringRGB(color);
+                    string coloredPart = $"<color=#{colorHex}>{part}</color>";
+                    fullMessage = fullMessage.Replace(part, coloredPart);
+                }
+            }
+
+            UnityEngine.Debug.LogErrorFormat(fullMessage, args);
+        }
 
         #endregion
 
