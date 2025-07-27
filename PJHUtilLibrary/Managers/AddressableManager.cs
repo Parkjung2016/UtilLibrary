@@ -5,6 +5,8 @@ using PJH.Utility.Extensions;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+using UnityEngine.ResourceManagement.ResourceProviders;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace PJH.Utility
@@ -143,6 +145,22 @@ namespace PJH.Utility
             }
 
             return true;
+        }
+
+        #endregion
+
+        #region scene
+
+        public static async UniTask<SceneInstance> LoadSceneAsync(string key,
+            LoadSceneMode sceneMode = LoadSceneMode.Single)
+        {
+            return await Addressables.LoadSceneAsync(key, sceneMode);
+        }
+
+        public static async UniTask<SceneInstance> UnloadSceneAsync(
+            AsyncOperationHandle<SceneInstance> sceneInstanceHandle)
+        {
+            return await Addressables.UnloadSceneAsync(sceneInstanceHandle);
         }
 
         #endregion

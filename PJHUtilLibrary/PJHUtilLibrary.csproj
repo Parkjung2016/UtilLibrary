@@ -13,9 +13,6 @@
       <Reference Include="UniTask.Addressables">
         <HintPath>..\Library\UniTask.Addressables.dll</HintPath>
       </Reference>
-      <Reference Include="UniTask.DOTween">
-        <HintPath>..\Library\UniTask.DOTween.dll</HintPath>
-      </Reference>
       <Reference Include="UniTask.Linq">
         <HintPath>..\Library\UniTask.Linq.dll</HintPath>
       </Reference>
@@ -31,8 +28,20 @@
       <Reference Include="UnityEngine">
         <HintPath>..\Library\UnityEngine.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEngine.AssetBundleModule">
+        <HintPath>..\Library\UnityEngine.AssetBundleModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.CoreModule">
+        <HintPath>..\Library\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.PhysicsModule">
+        <HintPath>..\Library\UnityEngine.PhysicsModule.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine.UI">
         <HintPath>..\Library\UnityEngine.UI.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.UnityWebRequestModule">
+        <HintPath>..\Library\UnityEngine.UnityWebRequestModule.dll</HintPath>
       </Reference>
       <Reference Include="ZLinq">
         <HintPath>..\Library\ZLinq.dll</HintPath>
