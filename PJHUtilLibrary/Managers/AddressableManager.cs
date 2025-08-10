@@ -11,27 +11,36 @@ using Object = UnityEngine.Object;
 
 namespace PJH.Utility
 {
+    public struct LoadedResource
+    {
+        public Object asset;
+        public AsyncOperationHandle handle;
+
+        public LoadedResource(Object asset, AsyncOperationHandle handle)
+        {
+            this.asset = asset;
+            this.handle = handle;
+        }
+    }
+
     public static class AddressableManager
     {
         public static bool showDebugLog = true;
         public static bool isLoaded;
         public static Action OnLoaded;
-        private static Dictionary<string, Object> _resources = new Dictionary<string, Object>();
-
-        private static Dictionary<string, AsyncOperationHandle> _handles =
-            new Dictionary<string, AsyncOperationHandle>();
+        private static Dictionary<string, LoadedResource> _resourcesByName = new Dictionary<string, LoadedResource>();
 
         #region load reousources
 
         public static T Load<T>(string key) where T : Object
         {
-            if (_resources.TryGetValue(key, out Object resource))
+            if (_resourcesByName.TryGetValue(key, out LoadedResource loadedResource))
             {
-                var result = resource as T;
+                var result = loadedResource.asset as T;
                 if (showDebugLog)
                     Debug.Log(result);
                 if (result == null)
-                    if (resource is GameObject go)
+                    if (loadedResource.asset is GameObject go)
                     {
                         return go.GetComponent<T>();
                     }
@@ -81,9 +90,10 @@ namespace PJH.Utility
 
         private static async UniTask<T> LoadAsync<T>(string key) where T : Object
         {
-            if (_resources.TryGetValue(key, out Object resource))
+            LoadedResource loadedResource;
+            if (_resourcesByName.TryGetValue(key, out loadedResource))
             {
-                return resource as T;
+                return loadedResource.asset as T;
             }
 
             string loadKey = key;
@@ -91,11 +101,11 @@ namespace PJH.Utility
                 loadKey = $"{key}[{key.Replace(".sprite", "")}]";
 
             var asyncOperation = Addressables.LoadAssetAsync<T>(loadKey);
-            await asyncOperation.Task;
+            await asyncOperation;
 
             T result = asyncOperation.Result;
-            _resources.TryAdd(key, result);
-            _handles.TryAdd(key, asyncOperation);
+            loadedResource = new LoadedResource(result, asyncOperation);
+            _resourcesByName.TryAdd(key, loadedResource);
             return result;
         }
 
@@ -106,7 +116,7 @@ namespace PJH.Utility
             bool downloadSuccess = await DownloadDependenciesAsync(label);
             if (!downloadSuccess) return;
             var opHandle = Addressables.LoadResourceLocationsAsync(label, typeof(T));
-            await opHandle.Task;
+            await opHandle;
 
             int loadCount = 0;
             int totalCount = opHandle.Result.Count;
