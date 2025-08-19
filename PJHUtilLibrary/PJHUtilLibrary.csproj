@@ -25,6 +25,9 @@
       <Reference Include="Unity.ResourceManager">
         <HintPath>..\Library\Unity.ResourceManager.dll</HintPath>
       </Reference>
+      <Reference Include="UnityEditor">
+        <HintPath>..\Library\UnityEditor.dll</HintPath>
+      </Reference>
       <Reference Include="UnityEngine">
         <HintPath>..\Library\UnityEngine.dll</HintPath>
       </Reference>

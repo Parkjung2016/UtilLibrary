@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Reflection;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -13,6 +15,20 @@ namespace PJH.Utility
             string t = string.IsNullOrEmpty(tag) ? "" : $"[{tag}] ";
             string n = prefixNumber.HasValue ? $"{prefixNumber.Value}. " : "";
             return ts + t + n;
+        }
+
+        private static string BuildPrefixedMessage(object message, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
+            return $"{prefix}{message}";
+        }
+
+        private static string BuildColoredPrefixedMessage(object message, Color color, int? prefixNumber = null,
+            string tag = null, bool showTimestamp = false)
+        {
+            string prefixedMessage = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            return $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefixedMessage}</color>";
         }
 
         #region Properties
@@ -51,135 +67,174 @@ namespace PJH.Utility
         }
 
 
-#if UNITY_EDITOR
-	 / / Handle the callback function opened by the asset
-	[UnityEditor.Callbacks.OnOpenAssetAttribute(0)]
-	static bool OnOpenAsset(int instance, int line)
-	{
-		 // Custom function, used to get the stacktrace in the log, defined later.
-		string stack_trace = GetStackTrace();
-		 // Use stacktrace to locate whether it is our custom log. My log has special text [FoxLog], which is well recognized.
-		 If (!string.IsNullOrEmpty(stack_trace)) // can customize the label to be added here; the original code is confusing and does not need to be modified, you need to locate it yourself;
-		{
-			string strLower = stack_trace.ToLower();
-			if (strLower.Contains("[foxlog]"))
-			{
-				Match matches = Regex.Match(stack_trace, @"\(at(.+)\)", RegexOptions.IgnoreCase);
-				string pathline = "";
-				if (matches.Success)
-				{
-					pathline = matches.Groups[1].Value;
-					 Matches = matches.NextMatch(); // Raise another layer up to enter;
-					if (matches.Success)
-					{
-						pathline = matches.Groups[1].Value;
-						pathline = pathline.Replace(" ", "");
+        // Handle the callback function opened by the asset
+        [UnityEditor.Callbacks.OnOpenAssetAttribute(0)]
+        static bool OnOpenAsset(int instance, int line)
+        {
+            // Custom function, used to get the stacktrace in the log, defined later.
+            string stack_trace = GetStackTrace();
+            // Use stacktrace to locate whether it is our custom log. My log has special text [FoxLog], which is well recognized.
+            if (!string.IsNullOrEmpty(
+                    stack_trace)) // can customize the label to be added here; the original code is confusing and does not need to be modified, you need to locate it yourself;
+            {
+                string strLower = stack_trace.ToLower();
+                if (strLower.Contains("[foxlog]"))
+                {
+                    Match matches = Regex.Match(stack_trace, @"\(at(.+)\)", RegexOptions.IgnoreCase);
+                    string pathline = "";
+                    if (matches.Success)
+                    {
+                        pathline = matches.Groups[1].Value;
+                        matches = matches.NextMatch(); // Raise another layer up to enter;
+                        if (matches.Success)
+                        {
+                            pathline = matches.Groups[1].Value;
+                            pathline = pathline.Replace(" ", "");
 
-						int split_index = pathline.LastIndexOf(":");
-						string path = pathline.Substring(0, split_index);
-						line = Convert.ToInt32(pathline.Substring(split_index + 1));
-						string fullpath = Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("Assets"));
-						fullpath = fullpath + path;
-						string strPath = fullpath.Replace('/', '\\');
-						UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(strPath, line);
-					}
-					else
-					{
-						Debug.LogError("DebugCodeLocation OnOpenAsset, Error StackTrace");
-					}
+                            int split_index = pathline.LastIndexOf(":");
+                            string path = pathline.Substring(0, split_index);
+                            line = Convert.ToInt32(pathline.Substring(split_index + 1));
+                            string fullpath =
+                                Application.dataPath.Substring(0, Application.dataPath.LastIndexOf("Assets"));
+                            fullpath = fullpath + path;
+                            string strPath = fullpath.Replace('/', '\\');
+                            UnityEditorInternal.InternalEditorUtility.OpenFileAtLineExternal(strPath, line);
+                        }
+                        else
+                        {
+                            Debug.LogError("DebugCodeLocation OnOpenAsset, Error StackTrace");
+                        }
 
-					matches = matches.NextMatch();
-				}
-				return true;
-			}
-		}
-		return false;
-	}
+                        matches = matches.NextMatch();
+                    }
 
-	static string GetStackTrace()
-	{
-		 // Find the assembly of UnityEditor.EditorWindow
-		var assembly_unity_editor = Assembly.GetAssembly(typeof(UnityEditor.EditorWindow));
-		if (assembly_unity_editor == null) return null;
+                    return true;
+                }
+            }
 
-		 // Find the class UnityEditor.ConsoleWindow
-		var type_console_window = assembly_unity_editor.GetType("UnityEditor.ConsoleWindow");
-		if (type_console_window == null) return null;
-		 // Find the member ms_ConsoleWindow in UnityEditor.ConsoleWindow
-		var field_console_window =
- type_console_window.GetField("ms_ConsoleWindow", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-		if (field_console_window == null) return null;
-		 / / Get the value of ms_ConsoleWindow
-		var instance_console_window = field_console_window.GetValue(null);
-		if (instance_console_window == null) return null;
+            return false;
+        }
 
-		 / / If the focus window of the console window, get the stacktrace
-		if ((object)UnityEditor.EditorWindow.focusedWindow == instance_console_window)
-		{
-			 / / Get the class ListViewState through the assembly
-			var type_list_view_state = assembly_unity_editor.GetType("UnityEditor.ListViewState");
-			if (type_list_view_state == null) return null;
+        static string GetStackTrace()
+        {
+            // Find the assembly of UnityEditor.EditorWindow
+            var assembly_unity_editor = Assembly.GetAssembly(typeof(UnityEditor.EditorWindow));
+            if (assembly_unity_editor == null) return null;
 
-			 / / Find the member m_ListView in the class UnityEditor.ConsoleWindow
-			var field_list_view =
- type_console_window.GetField("m_ListView", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-			if (field_list_view == null) return null;
+            // Find the class UnityEditor.ConsoleWindow
+            var type_console_window = assembly_unity_editor.GetType("UnityEditor.ConsoleWindow");
+            if (type_console_window == null) return null;
+            // Find the member ms_ConsoleWindow in UnityEditor.ConsoleWindow
+            var field_console_window =
+                type_console_window.GetField("ms_ConsoleWindow",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            if (field_console_window == null) return null;
+            // Get the value of ms_ConsoleWindow
+            var instance_console_window = field_console_window.GetValue(null);
+            if (instance_console_window == null) return null;
 
-			 / / Get the value of m_ListView
-			var value_list_view = field_list_view.GetValue(instance_console_window);
-			if (value_list_view == null) return null;
+            // If the focus window of the console window, get the stacktrace
+            if ((object)UnityEditor.EditorWindow.focusedWindow == instance_console_window)
+            {
+                // Get the class ListViewState through the assembly
+                var type_list_view_state = assembly_unity_editor.GetType("UnityEditor.ListViewState");
+                if (type_list_view_state == null) return null;
 
-			 // Find the member m_ActiveText in the class UnityEditor.ConsoleWindow
-			var field_active_text =
- type_console_window.GetField("m_ActiveText", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-			if (field_active_text == null) return null;
+                // Find the member m_ListView in the class UnityEditor.ConsoleWindow
+                var field_list_view =
+                    type_console_window.GetField("m_ListView",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (field_list_view == null) return null;
 
-			 / / Get the value of m_ActiveText, is the stacktrace we need
-			string value_active_text = field_active_text.GetValue(instance_console_window).ToString();
-			return value_active_text;
-		}
+                // Get the value of m_ListView
+                var value_list_view = field_list_view.GetValue(instance_console_window);
+                if (value_list_view == null) return null;
 
-		return null;
-	}
-}
-#endif
+                // Find the member m_ActiveText in the class UnityEditor.ConsoleWindow
+                var field_active_text =
+                    type_console_window.GetField("m_ActiveText",
+                        System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                if (field_active_text == null) return null;
+
+                // Get the value of m_ActiveText, is the stacktrace we need
+                string value_active_text = field_active_text.GetValue(instance_console_window).ToString();
+                return value_active_text;
+            }
+
+            return null;
+        }
 
         #endregion
 
         #region Assert
 
         [Conditional("UNITY_EDITOR")]
-        public static void Assert(bool condition, string message, Object context)
-            => UnityEngine.Debug.Assert(condition, message, context);
+        public static void Assert(bool condition, string message, Object context, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Assert(condition, output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
         public static void Assert(bool condition)
             => UnityEngine.Debug.Assert(condition);
 
         [Conditional("UNITY_EDITOR")]
-        public static void Assert(bool condition, object message, Object context)
-            => UnityEngine.Debug.Assert(condition, message, context);
+        public static void Assert(bool condition, object message, Object context, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Assert(condition, output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void Assert(bool condition, string message)
-            => UnityEngine.Debug.Assert(condition, message);
+        public static void Assert(bool condition, string message, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Assert(condition, output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void Assert(bool condition, object message)
-            => UnityEngine.Debug.Assert(condition, message);
+        public static void Assert(bool condition, object message, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Assert(condition, output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void Assert(bool condition, Object context)
-            => UnityEngine.Debug.Assert(condition, context);
+        public static void Assert(bool condition, Object context, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(context, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Assert(condition, output);
+        }
 
 
         [Conditional("UNITY_EDITOR")]
-        public static void AssertFormat(bool condition, Object context, string format, params object[] args)
-            => UnityEngine.Debug.AssertFormat(condition, context, format, args);
+        public static void AssertFormat(bool condition, Object context, string format, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.AssertFormat(condition, context, output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void AssertFormat(bool condition, string format, params object[] args)
-            => UnityEngine.Debug.AssertFormat(condition, format, args);
+        public static void AssertFormat(bool condition, string format, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.AssertFormat(condition, output, args);
+        }
 
         #endregion
 
@@ -189,8 +244,7 @@ namespace PJH.Utility
         public static void Log(object message, int? prefixNumber = null, string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"{prefix}{message}";
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.Log(output);
         }
 
@@ -198,23 +252,34 @@ namespace PJH.Utility
         public static void Log(object message, Object context, int? prefixNumber = null, string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"{prefix}{message}";
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.Log(output, context);
         }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogFormat(string format, params object[] args)
-            => UnityEngine.Debug.LogFormat(format, args);
+        public static void LogFormat(string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogFormat(output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogFormat(Object context, string format, params object[] args)
-            => UnityEngine.Debug.LogFormat(context, format, args);
+        public static void LogFormat(Object context, string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogFormat(context, output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
         public static void LogFormat(LogType logType, LogOption logOptions, Object context, string format,
-            params object[] args)
-            => UnityEngine.Debug.LogFormat(logType, logOptions, context, format, args);
+            int? prefixNumber = null, string tag = null, bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogFormat(logType, logOptions, context, output, args);
+        }
 
         #endregion
 
@@ -224,8 +289,7 @@ namespace PJH.Utility
         public static void LogColor(object message, Color color, int? prefixNumber = null, string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.Log(output);
         }
 
@@ -234,8 +298,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.Log(output, context);
         }
 
@@ -278,8 +341,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogFormat(output, args);
         }
 
@@ -287,8 +349,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogFormat(context, output, args);
         }
 
@@ -298,8 +359,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogFormat(logType, logOptions, context, output, args);
         }
 
@@ -371,20 +431,37 @@ namespace PJH.Utility
         #region LogAssertion
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogAssertion(object message, Object context)
-            => UnityEngine.Debug.LogAssertion(message, context);
+        public static void LogAssertion(object message, Object context, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogAssertion(output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogAssertion(object message)
-            => UnityEngine.Debug.LogAssertion(message);
+        public static void LogAssertion(object message, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogAssertion(output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogAssertionFormat(Object context, string format, params object[] args)
-            => UnityEngine.Debug.LogAssertionFormat(context, format, args);
+        public static void LogAssertionFormat(Object context, string format, int? prefixNumber = null,
+            string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogAssertionFormat(context, output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogAssertionFormat(string format, params object[] args)
-            => UnityEngine.Debug.LogAssertionFormat(format, args);
+        public static void LogAssertionFormat(string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogAssertionFormat(output, args);
+        }
 
         #endregion
 
@@ -395,8 +472,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogAssertion(output, context);
         }
 
@@ -405,8 +481,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogAssertion(output);
         }
 
@@ -449,8 +524,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogAssertionFormat(context, output, args);
         }
 
@@ -459,8 +533,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogAssertionFormat(output, args);
         }
 
@@ -511,20 +584,36 @@ namespace PJH.Utility
         #region LogWarning
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogWarning(object message, Object context)
-            => UnityEngine.Debug.LogWarning(message, context);
+        public static void LogWarning(object message, Object context, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogWarning(output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogWarning(object message)
-            => UnityEngine.Debug.LogWarning(message);
+        public static void LogWarning(object message, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogWarning(output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogWarningFormat(Object context, string format, params object[] args)
-            => UnityEngine.Debug.LogWarningFormat(context, format, args);
+        public static void LogWarningFormat(Object context, string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(context, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogWarningFormat(context, output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogWarningFormat(string format, params object[] args)
-            => UnityEngine.Debug.LogWarningFormat(format, args);
+        public static void LogWarningFormat(string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogWarningFormat(output, args);
+        }
 
         #endregion
 
@@ -534,8 +623,7 @@ namespace PJH.Utility
         public static void LogColorWarning(string message, Color color, int? prefixNumber = null, string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogWarning(output);
         }
 
@@ -544,8 +632,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogWarning(output, context);
         }
 
@@ -594,8 +681,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogWarningFormat(context, output, args);
         }
 
@@ -604,8 +690,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogWarningFormat(output, args);
         }
 
@@ -654,20 +739,36 @@ namespace PJH.Utility
         #region LogError
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogError(object message, Object context)
-            => UnityEngine.Debug.LogError(message, context);
+        public static void LogError(object message, Object context, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogError(output, context);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogError(object message)
-            => UnityEngine.Debug.LogError(message);
+        public static void LogError(object message, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false)
+        {
+            string output = BuildPrefixedMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogError(output);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogErrorFormat(Object context, string format, params object[] args)
-            => UnityEngine.Debug.LogErrorFormat(context, format, args);
+        public static void LogErrorFormat(Object context, string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogErrorFormat(context, output, args);
+        }
 
         [Conditional("UNITY_EDITOR")]
-        public static void LogErrorFormat(string format, params object[] args)
-            => UnityEngine.Debug.LogErrorFormat(format, args);
+        public static void LogErrorFormat(string format, int? prefixNumber = null, string tag = null,
+            bool showTimestamp = false, params object[] args)
+        {
+            string output = BuildPrefixedMessage(format, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogErrorFormat(output, args);
+        }
 
         #endregion
 
@@ -677,8 +778,7 @@ namespace PJH.Utility
         public static void LogColorError(string message, Color color, int? prefixNumber = null, string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogError(output);
         }
 
@@ -687,8 +787,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{message}</color>";
+            string output = BuildColoredPrefixedMessage(message, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogError(output, context);
         }
 
@@ -697,8 +796,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogErrorFormat(context, output, args);
         }
 
@@ -707,8 +805,7 @@ namespace PJH.Utility
             string tag = null,
             bool showTimestamp = false, params object[] args)
         {
-            string prefix = BuildPrefix(prefixNumber, tag, showTimestamp);
-            string output = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{prefix}{format}</color>";
+            string output = BuildColoredPrefixedMessage(format, color, prefixNumber, tag, showTimestamp);
             UnityEngine.Debug.LogErrorFormat(output, args);
         }
 
