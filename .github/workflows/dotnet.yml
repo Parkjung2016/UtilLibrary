@@ -26,6 +26,11 @@ jobs:
       - name: Publish DLL
         run: dotnet publish -c Release -o output/
 
+      - name: Copy DLL to Plugins folder
+        run: |
+          mkdir -p Assets/Plugins
+          cp output/*.dll Assets/Plugins/
+
       - name: Upload DLL as artifact
         uses: actions/upload-artifact@v4
         with:
