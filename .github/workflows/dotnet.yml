@@ -1,0 +1,33 @@
+name: Build DLL
+
+on:
+  push:
+    branches: [ "main" ] # main 브랜치에 push 할 때만 실행
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest  # .NET 빌드하려면 윈도우/우분투 둘 다 가능
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x # 너가 쓰는 버전 맞춰
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build project
+        run: dotnet build --configuration Release
+
+      - name: Publish DLL
+        run: dotnet publish -c Release -o output/
+
+      - name: Upload DLL as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PJHUtilLibrary-dll
+          path: output/*.dll
