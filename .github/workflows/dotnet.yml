@@ -54,12 +54,12 @@ jobs:
           if (-Not (Test-Path $target)) {
             New-Item -ItemType Directory -Path $target
           }
-          Copy-Item -Path output\*.dll -Destination $target -Force
+          Copy-Item -Path output\PJHUtilLibrary.dll -Destination $target -Force
 
       # 8. 커밋 & 강제 push
       - name: Commit and Push DLL
         shell: pwsh
         run: |
-          git add Runtime/Plugins/*.dll
+          git add Runtime/Plugins/PJHUtilLibrary.dll
           git commit -m "chore: update DLL [skip ci]" || Write-Host "No changes to commit"
           git push --force origin package
