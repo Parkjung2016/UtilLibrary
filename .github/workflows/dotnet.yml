@@ -1,21 +1,23 @@
-name: Build DLL
+name: Build and Commit DLL
 
 on:
   push:
-    branches: [ "main" ] # main 브랜치에 push 할 때만 실행
-  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
-    runs-on: windows-latest  # .NET 빌드하려면 윈도우/우분투 둘 다 가능
+    runs-on: windows-latest
+
     steps:
-      - name: Checkout repo
+      - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }} # 자동 푸시 권한용
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 8.0.x # 너가 쓰는 버전 맞춰
+          dotnet-version: "8.0.x"
 
       - name: Restore dependencies
         run: dotnet restore
@@ -31,8 +33,10 @@ jobs:
           mkdir -p Assets/Plugins
           cp output/*.dll Assets/Plugins/
 
-      - name: Upload DLL as artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: PJHUtilLibrary-dll
-          path: output/*.dll
+      - name: Commit and Push DLL
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Assets/Plugins/*.dll
+          git commit -m "chore: update DLL [skip ci]" || echo "No changes to commit"
+          git push
