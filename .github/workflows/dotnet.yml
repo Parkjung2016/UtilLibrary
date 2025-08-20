@@ -41,10 +41,10 @@ jobs:
       - name: Copy DLL to Plugins folder
         shell: pwsh
         run: |
-          if (-Not (Test-Path -Path runtime/Plugins)) {
-            New-Item -ItemType Directory -Path runtime/Plugins
+          if (-Not (Test-Path -Path Assets/Plugins)) {
+            New-Item -ItemType Directory -Path Assets/Plugins
           }
-          Copy-Item -Path output\*.dll -Destination runtime/Plugins -Force
+          Copy-Item -Path output\*.dll -Destination Assets/Plugins -Force
 
       # 7. 커밋 & 강제 푸시
       - name: Commit and Push DLL
@@ -52,6 +52,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add runtime/Plugins/PJHUtilLibrary.dll
+          git add Assets/Plugins/PJHUtilLibrary.dll
           git commit -m "chore: update DLL [skip ci]" || Write-Host "No changes to commit"
           git push --force origin HEAD:main
