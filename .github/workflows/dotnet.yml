@@ -1,23 +1,24 @@
-name: Build and Commit DLL
+name: Build DLL
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main" ] # main 브랜치에 push 할 때만 실행
+  pull_request:
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout repo
         uses: actions/checkout@v4
         with:
-          token: ${{ secrets.GITHUB_TOKEN }} # 자동 푸시 권한용
+          token: ${{ secrets.GITHUB_TOKEN }} # Actions가 push할 수 있게 권한 설정
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: "8.0.x"
+          dotnet-version: 8.0.x # 네 프로젝트 버전 맞춰
 
       - name: Restore dependencies
         run: dotnet restore
@@ -38,5 +39,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add Assets/Plugins/*.dll
-          git commit -m "chore: update DLL [skip ci]" || echo "No changes to commit"
-          git push
+          git commit -m "chore: update DLL [skip ci]"
+          git push origin HEAD:main
