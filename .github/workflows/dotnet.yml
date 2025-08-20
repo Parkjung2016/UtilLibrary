@@ -3,8 +3,10 @@ name: Build DLL
 on:
   push:
     branches: [ "main" ] # main 브랜치에 push 할 때만 실행
-  pull_request:
 
+permissions:
+  contents: write   # <-- 이게 있어야 push 가능
+  
 jobs:
   build:
     runs-on: windows-latest
