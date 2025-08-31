@@ -1,4 +1,4 @@
-﻿namespace PJH.Utility
+﻿namespace PJH.Utility.Utils
 {
     public static class RichTagHelper
     {

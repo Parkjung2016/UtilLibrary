@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
-using UnityEngine.EventSystems;
 
-namespace PJH.Utility
+namespace PJH.Utility.Utils
 {
     public static class RayCastUtil
     {

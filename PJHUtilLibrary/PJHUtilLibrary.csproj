@@ -6,6 +6,10 @@
         <RootNamespace>ClassLibrary3</RootNamespace>
     </PropertyGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>..\Assets\Plugins\</OutputPath>
+    </PropertyGroup>
+
     <ItemGroup>
       <Reference Include="UniTask">
         <HintPath>..\Library\UniTask.dll</HintPath>

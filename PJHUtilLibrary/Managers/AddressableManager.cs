@@ -9,7 +9,7 @@ using UnityEngine.ResourceManagement.ResourceProviders;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
-namespace PJH.Utility
+namespace PJH.Utility.Managers
 {
     public struct LoadedResource
     {

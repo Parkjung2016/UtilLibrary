@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-using ZLinq;
 
-namespace PJH.Utility
+namespace PJH.Utility.Managers
 {
     public static class TimeScaleLayerManager
     {

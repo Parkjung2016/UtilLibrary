@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PJH.Utility
+namespace PJH.Utility.Utils
 {
     public static class VectorMath
     {

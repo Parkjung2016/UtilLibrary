@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace PJH.Utility
+namespace PJH.Utility.Managers
 {
     public static class CursorManager
     {
