@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 
@@ -29,29 +30,97 @@ namespace PJH.Utility
 
     public static class PJHDebug
     {
-        private const string MARK_PREFIX = "[Mark]";
+        #region 화면 로그용 내부 MonoBehaviour
+
+        private class FloatingDebug : MonoBehaviour
+        {
+            public class LogMessage
+            {
+                public string message;
+                public float expireTime;
+                public Color color;
+            }
+
+            private List<LogMessage> messages = new List<LogMessage>();
+            private static FloatingDebug _instance;
+
+            public static FloatingDebug Instance
+            {
+                get
+                {
+                    if (_instance == null)
+                    {
+                        var go = new GameObject("PJHFloatingDebug");
+                        _instance = go.AddComponent<FloatingDebug>();
+                        UnityEngine.Object.DontDestroyOnLoad(go);
+                    }
+                    return _instance;
+                }
+            }
+
+            public void AddMessage(string message, Color? color = null, float duration = 2f)
+            {
+                messages.Add(new LogMessage
+                {
+                    message = message,
+                    expireTime = Time.time + duration,
+                    color = color ?? Color.white
+                });
+            }
+
+            private void OnGUI()
+            {
+                float y = 10f;
+                for (int i = messages.Count - 1; i >= 0; i--)
+                {
+                    var log = messages[i];
+                    if (Time.time > log.expireTime)
+                    {
+                        messages.RemoveAt(i);
+                        continue;
+                    }
+
+                    GUI.contentColor = log.color;
+                    GUI.Label(new Rect(10, y, 1000, 25), log.message);
+                    y += 30;
+                }
+
+                GUI.contentColor = Color.white;
+            }
+        }
+
+        #endregion
 
         #region 기본 로그
 
         [Conditional("ENABLE_LOG")]
         public static void Log(object message, UnityEngine.Object context = null, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, Color? color = null)
         {
-            UnityEngine.Debug.Log(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            string msg = BuildMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.Log(msg, context);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(msg, color, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogWarning(object message, UnityEngine.Object context = null, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, Color? color = null)
         {
-            UnityEngine.Debug.LogWarning(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            string msg = BuildMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogWarning(msg, context);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(msg, color ?? Color.yellow, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogError(object message, UnityEngine.Object context = null, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, Color? color = null)
         {
-            UnityEngine.Debug.LogError(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            string msg = BuildMessage(message, prefixNumber, tag, showTimestamp);
+            UnityEngine.Debug.LogError(msg, context);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(msg, color ?? Color.red, duration);
         }
 
         #endregion
@@ -60,48 +129,58 @@ namespace PJH.Utility
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorPart(string message, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false, params (string part, Color color, ReplaceMode mode)[] colorInfos)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f,
+            params (string part, Color color, ReplaceMode mode)[] colorInfos)
         {
             string output = ApplyColors(BuildMessage(message, prefixNumber, tag, showTimestamp), colorInfos);
             UnityEngine.Debug.Log(output);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(output, Color.white, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorWarningPart(string message, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false, params (string part, Color color, ReplaceMode mode)[] colorInfos)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f,
+            params (string part, Color color, ReplaceMode mode)[] colorInfos)
         {
             string output = ApplyColors(BuildMessage(message, prefixNumber, tag, showTimestamp), colorInfos);
             UnityEngine.Debug.LogWarning(output);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(output, Color.yellow, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorErrorPart(string message, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false, params (string part, Color color, ReplaceMode mode)[] colorInfos)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f,
+            params (string part, Color color, ReplaceMode mode)[] colorInfos)
         {
             string output = ApplyColors(BuildMessage(message, prefixNumber, tag, showTimestamp), colorInfos);
             UnityEngine.Debug.LogError(output);
+            if (showOnScreen)
+                FloatingDebug.Instance.AddMessage(output, Color.red, duration);
         }
 
-        // --- 전체 메시지 색상 오버로드 ---
         [Conditional("ENABLE_LOG")]
         public static void LogColorPart(string message, Color color, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f)
         {
-            LogColorPart(message, prefixNumber, tag, showTimestamp, (message, color, ReplaceMode.All));
+            LogColorPart(message, prefixNumber, tag, showTimestamp, showOnScreen, duration, (message, color, ReplaceMode.All));
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorWarningPart(string message, Color color, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f)
         {
-            LogColorWarningPart(message, prefixNumber, tag, showTimestamp, (message, color, ReplaceMode.All));
+            LogColorWarningPart(message, prefixNumber, tag, showTimestamp, showOnScreen, duration,
+                (message, color, ReplaceMode.All));
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorErrorPart(string message, Color color, int? prefixNumber = null, string tag = null,
-            bool showTimestamp = false)
+            bool showTimestamp = false, bool showOnScreen = false, float duration = 2f)
         {
-            LogColorErrorPart(message, prefixNumber, tag, showTimestamp, (message, color, ReplaceMode.All));
+            LogColorErrorPart(message, prefixNumber, tag, showTimestamp, showOnScreen, duration,
+                (message, color, ReplaceMode.All));
         }
 
         #endregion
@@ -110,26 +189,26 @@ namespace PJH.Utility
 
         [Conditional("ENABLE_LOG")]
         public static void LogFormat(UnityEngine.Object context, string format, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false, params object[] args)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
-            UnityEngine.Debug.Log(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            Log(message, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogWarningFormat(UnityEngine.Object context, string format, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false, params object[] args)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
-            UnityEngine.Debug.LogWarning(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            LogWarning(message, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogErrorFormat(UnityEngine.Object context, string format, int? prefixNumber = null,
-            string tag = null, bool showTimestamp = false, params object[] args)
+            string tag = null, bool showTimestamp = false, bool showOnScreen = false, float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
-            UnityEngine.Debug.LogError(BuildMessage(message, prefixNumber, tag, showTimestamp), context);
+            LogError(message, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         #endregion
@@ -138,29 +217,32 @@ namespace PJH.Utility
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorFormat(UnityEngine.Object context, Color color, string format,
-            int? prefixNumber = null, string tag = null, bool showTimestamp = false, params object[] args)
+            int? prefixNumber = null, string tag = null, bool showTimestamp = false, bool showOnScreen = false,
+            float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
             string coloredMessage = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>";
-            UnityEngine.Debug.Log(BuildMessage(coloredMessage, prefixNumber, tag, showTimestamp), context);
+            Log(coloredMessage, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorWarningFormat(UnityEngine.Object context, Color color, string format,
-            int? prefixNumber = null, string tag = null, bool showTimestamp = false, params object[] args)
+            int? prefixNumber = null, string tag = null, bool showTimestamp = false, bool showOnScreen = false,
+            float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
             string coloredMessage = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>";
-            UnityEngine.Debug.LogWarning(BuildMessage(coloredMessage, prefixNumber, tag, showTimestamp), context);
+            LogWarning(coloredMessage, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         [Conditional("ENABLE_LOG")]
         public static void LogColorErrorFormat(UnityEngine.Object context, Color color, string format,
-            int? prefixNumber = null, string tag = null, bool showTimestamp = false, params object[] args)
+            int? prefixNumber = null, string tag = null, bool showTimestamp = false, bool showOnScreen = false,
+            float duration = 2f, params object[] args)
         {
             string message = string.Format(format, args);
             string coloredMessage = $"<color=#{ColorUtility.ToHtmlStringRGB(color)}>{message}</color>";
-            UnityEngine.Debug.LogError(BuildMessage(coloredMessage, prefixNumber, tag, showTimestamp), context);
+            LogError(coloredMessage, context, prefixNumber, tag, showTimestamp, showOnScreen, duration);
         }
 
         #endregion
@@ -168,21 +250,25 @@ namespace PJH.Utility
         #region Assert
 
         [Conditional("ENABLE_LOG")]
-        public static void Assert(bool condition, string message = "", UnityEngine.Object context = null)
+        public static void Assert(bool condition, string message = "", UnityEngine.Object context = null, float duration = 2f)
         {
             if (!condition)
             {
-                UnityEngine.Debug.Assert(false, BuildMessage(message, null, "Assert", true), context);
+                string msg = BuildMessage(message, null, "Assert", true);
+                UnityEngine.Debug.Assert(false, msg, context);
+                FloatingDebug.Instance.AddMessage(msg, Color.red, duration);
             }
         }
 
         [Conditional("ENABLE_LOG")]
-        public static void AssertFormat(bool condition, UnityEngine.Object context, string format, params object[] args)
+        public static void AssertFormat(bool condition, UnityEngine.Object context, string format, float duration = 2f, params object[] args)
         {
             if (!condition)
             {
                 string message = string.Format(format, args);
-                UnityEngine.Debug.Assert(false, BuildMessage(message, null, "Assert", true), context);
+                string msg = BuildMessage(message, null, "Assert", true);
+                UnityEngine.Debug.Assert(false, msg, context);
+                FloatingDebug.Instance.AddMessage(msg, Color.red, duration);
             }
         }
 
@@ -195,7 +281,7 @@ namespace PJH.Utility
             string numberPrefix = prefixNumber.HasValue ? $"#{prefixNumber.Value:000} " : "";
             string tagPrefix = !string.IsNullOrEmpty(tag) ? $"[{tag}] " : "";
             string timestamp = showTimestamp ? $"[{DateTime.Now:HH:mm:ss.fff}] " : "";
-            return $"{MARK_PREFIX} {numberPrefix}{tagPrefix}{timestamp}{message}";
+            return $"{numberPrefix}{tagPrefix}{timestamp}{message}";
         }
 
         private static string ApplyColors(string text, (string part, Color color, ReplaceMode mode)[] colorInfos)
@@ -229,8 +315,10 @@ namespace PJH.Utility
                                 text = text.Substring(0, index) + coloredPart + text.Substring(index + part.Length);
                                 break;
                             }
+
                             start = index + part.Length;
                         }
+
                         break;
                 }
             }

@@ -1,7 +1,8 @@
-﻿#if UNITY_EDITOR
-using UnityEditor;
+﻿using UnityEditor;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using System.Linq;
+using UnityEditor.Build;
 
 namespace PJH.Utility.Editor
 {
@@ -55,26 +56,27 @@ namespace PJH.Utility.Editor
 
         private static bool IsSymbolEnabled()
         {
-            var targetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            string symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(targetGroup);
-            string[] symbolArray = symbols.Split(';');
-            return System.Array.Exists(symbolArray, s => s == SYMBOL);
+            var targetGroup = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            PlayerSettings.GetScriptingDefineSymbols(targetGroup, out string[] symbols);
+            return symbols.Contains(SYMBOL);
         }
+
 
         private static void SetSymbolEnabled(bool enabled)
         {
-            var targetGroup = EditorUserBuildSettings.selectedBuildTargetGroup;
-            string symbols = PlayerSettings.GetScriptingDefineSymbolsForGroup(targetGroup);
-            string[] symbolArray = symbols.Split(';');
+            var namedTarget = NamedBuildTarget.FromBuildTargetGroup(EditorUserBuildSettings.selectedBuildTargetGroup);
+            PlayerSettings.GetScriptingDefineSymbols(namedTarget, out string[] symbols);
 
-            if (enabled && !IsSymbolEnabled())
-                symbols = string.Join(";", symbolArray) + ";" + SYMBOL;
-            else if (!enabled && IsSymbolEnabled())
-                symbols = string.Join(";", System.Array.FindAll(symbolArray, s => s != SYMBOL));
+            var symbolList = symbols.ToList();
 
-            PlayerSettings.SetScriptingDefineSymbolsForGroup(targetGroup, symbols);
+            if (enabled && !symbolList.Contains(SYMBOL))
+                symbolList.Add(SYMBOL);
+            else if (!enabled && symbolList.Contains(SYMBOL))
+                symbolList.Remove(SYMBOL);
 
-            UpdateMenuCheck(); // 심볼 변경 후 메뉴 체크 상태 갱신
+            PlayerSettings.SetScriptingDefineSymbols(namedTarget, symbolList.ToArray());
+
+            UpdateMenuCheck(); // 메뉴 체크 갱신
         }
 
         private static void UpdateMenuCheck()
@@ -83,4 +85,3 @@ namespace PJH.Utility.Editor
         }
     }
 }
-#endif

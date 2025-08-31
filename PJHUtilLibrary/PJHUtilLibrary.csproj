@@ -29,8 +29,11 @@
       <Reference Include="Unity.ResourceManager">
         <HintPath>..\Library\Unity.ResourceManager.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEditor">
-        <HintPath>..\Library\UnityEditor.dll</HintPath>
+      <Reference Include="UnityEditor.BuildProfileModule">
+        <HintPath>..\Library\UnityEditor.BuildProfileModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEditor.CoreModule">
+        <HintPath>..\Library\UnityEditor.CoreModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine">
         <HintPath>..\Library\UnityEngine.dll</HintPath>
@@ -40,6 +43,9 @@
       </Reference>
       <Reference Include="UnityEngine.CoreModule">
         <HintPath>..\Library\UnityEngine.CoreModule.dll</HintPath>
+      </Reference>
+      <Reference Include="UnityEngine.IMGUIModule">
+        <HintPath>..\Library\UnityEngine.IMGUIModule.dll</HintPath>
       </Reference>
       <Reference Include="UnityEngine.PhysicsModule">
         <HintPath>..\Library\UnityEngine.PhysicsModule.dll</HintPath>
