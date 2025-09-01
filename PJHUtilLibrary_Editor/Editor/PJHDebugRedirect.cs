@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+﻿using System;
 using System.IO;
 using System.Text.RegularExpressions;
 using UnityEditor;
@@ -42,7 +42,7 @@ namespace PJH.Utility.Editor
             {
                 var listViewState = consoleWindowType.GetField("m_ListView",
                         System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-                    .GetValue(consoleInstance);
+                    ?.GetValue(consoleInstance);
                 var rowField = listViewState.GetType().GetField("row",
                     System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
                 int row = (int)rowField.GetValue(listViewState);
@@ -55,4 +55,3 @@ namespace PJH.Utility.Editor
         }
     }
 }
-#endif

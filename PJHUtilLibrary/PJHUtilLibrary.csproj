@@ -29,15 +29,6 @@
       <Reference Include="Unity.ResourceManager">
         <HintPath>..\Library\Unity.ResourceManager.dll</HintPath>
       </Reference>
-      <Reference Include="UnityEditor.BuildProfileModule">
-        <HintPath>..\Library\UnityEditor.BuildProfileModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEditor.CoreModule">
-        <HintPath>..\Library\UnityEditor.CoreModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>..\Library\UnityEngine.dll</HintPath>
-      </Reference>
       <Reference Include="UnityEngine.AssetBundleModule">
         <HintPath>..\Library\UnityEngine.AssetBundleModule.dll</HintPath>
       </Reference>

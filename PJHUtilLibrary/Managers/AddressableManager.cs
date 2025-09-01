@@ -38,7 +38,7 @@ namespace PJH.Utility.Managers
             {
                 var result = loadedResource.asset as T;
                 if (showDebugLog)
-                    Debug.Log(result);
+                    PJHDebug.Log(result);
                 if (result == null)
                     if (loadedResource.asset is GameObject go)
                     {
@@ -58,7 +58,7 @@ namespace PJH.Utility.Managers
             if (!prefab)
             {
                 if (showDebugLog)
-                    Debug.LogError($"Failed to load prefab : {key}");
+                    PJHDebug.LogError($"Failed to load prefab : {key}");
                 return null;
             }
 
@@ -75,7 +75,7 @@ namespace PJH.Utility.Managers
             if (!prefab)
             {
                 if (showDebugLog)
-                    Debug.LogError($"Failed to load prefab : {key}");
+                    PJHDebug.LogError($"Failed to load prefab : {key}");
                 return null;
             }
 
@@ -113,8 +113,17 @@ namespace PJH.Utility.Managers
         public static async UniTask LoadALlAsync<T>(string label, Action<string, int, int> callBack = null)
             where T : Object
         {
-            bool downloadSuccess = await DownloadDependenciesAsync(label);
-            if (!downloadSuccess) return;
+            float timeoutSeconds = 5f;
+            try
+            {
+                await DownloadDependenciesAsync(label).Timeout(TimeSpan.FromSeconds(timeoutSeconds));
+            }
+            catch (TimeoutException)
+            {
+                PJHDebug.LogError($"DownloadDependenciesAsync timeout ({{timeoutSeconds}}s for label: {label}",
+                    tag: "AddressableManager");
+            }
+
             var opHandle = Addressables.LoadResourceLocationsAsync(label, typeof(T));
             await opHandle;
 

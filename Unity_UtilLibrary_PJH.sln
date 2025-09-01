@@ -2,6 +2,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PJHUtilLibrary", "PJHUtilLibrary\PJHUtilLibrary.csproj", "{65B97354-FBCE-4AAC-B51D-67398009F71C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PJHUtilLibrary_Editor", "PJHUtilLibrary_Editor\PJHUtilLibrary_Editor.csproj", "{4C73970E-285D-4A9A-8C5F-664F3A3B4DAA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -12,5 +14,9 @@ Global
 		{65B97354-FBCE-4AAC-B51D-67398009F71C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{65B97354-FBCE-4AAC-B51D-67398009F71C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{65B97354-FBCE-4AAC-B51D-67398009F71C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4C73970E-285D-4A9A-8C5F-664F3A3B4DAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4C73970E-285D-4A9A-8C5F-664F3A3B4DAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4C73970E-285D-4A9A-8C5F-664F3A3B4DAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4C73970E-285D-4A9A-8C5F-664F3A3B4DAA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
