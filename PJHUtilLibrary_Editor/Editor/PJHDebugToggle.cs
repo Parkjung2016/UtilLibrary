@@ -5,12 +5,13 @@ using System.Linq;
 
 namespace PJH.Utility.Editor
 {
-    
     [InitializeOnLoad]
     public static class PJHDebugToggle
     {
         private const string SYMBOL = "ENABLE_LOG";
         private const string MENU_PATH = "PJH/Toggle Debug Logs";
+
+        private static bool _prevToggle;
 
         static PJHDebugToggle()
         {
@@ -20,6 +21,7 @@ namespace PJH.Utility.Editor
 
         private static void OnBuildPlayer(BuildPlayerOptions options)
         {
+            _prevToggle = IsSymbolEnabled();
             bool enableLogs = EditorUtility.DisplayDialog(
                 "Enable Debug Logs",
                 "빌드에서 PJHDebug 로그를 활성화하시겠습니까?",
@@ -27,7 +29,8 @@ namespace PJH.Utility.Editor
                 "No"
             );
 
-            SetSymbolEnabled(enableLogs);
+            if (enableLogs != _prevToggle)
+                SetSymbolEnabled(enableLogs);
 
             AssetDatabase.Refresh();
 
@@ -36,6 +39,8 @@ namespace PJH.Utility.Editor
                 PJHDebug.Log("빌드 성공");
             else
                 PJHDebug.LogError("빌드 실패");
+            if (enableLogs != _prevToggle)
+                SetSymbolEnabled(_prevToggle);
         }
 
         [MenuItem(MENU_PATH)]
