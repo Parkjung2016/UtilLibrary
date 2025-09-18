@@ -93,6 +93,28 @@ namespace PJH.Utility.Extensions
                 : string.Empty;
         }
 
+        /// <summary>문자열 내의 모든 공백(띄어쓰기)을 제거합니다.</summary>
+        public static string RemoveAllSpaces(this string val)
+        {
+            if (val.IsNullOrWhiteSpace())
+            {
+                return string.Empty;
+            }
+
+            return val.Replace(" ", "");
+        }
+
+        /// <summary>문자열 내의 모든 공백 문자(공백, 탭, 줄 바꿈 등)를 제거합니다.</summary>
+        public static string RemoveAllWhitespace(this string val)
+        {
+            if (val.IsNullOrWhiteSpace())
+            {
+                return string.Empty;
+            }
+
+            return new string(val.Where(c => !char.IsWhiteSpace(c)).ToArray());
+        }
+
         // Rich text formatting, for Unity UI elements that support rich text.
         public static string RichColor(this string text, string color) => $"<color={color}>{text}</color>";
         public static string RichSize(this string text, int size) => $"<size={size}>{text}</size>";
